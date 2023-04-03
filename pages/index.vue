@@ -25,7 +25,11 @@ const size = computed(() => {
 
 const boat_heading = 170;
 const wind_heading = 130;
-const theta = 90;
+const kitePos = {
+    theta: 60,
+    phi: 60,
+    psi: 0,
+};
 
 onMounted(() => {
     var sketch = (p: p5) => {
@@ -43,6 +47,17 @@ onMounted(() => {
             p.translate(p.width / 2, p.height);
             draw_flight_window(p);
             draw_boat(p);
+            plot_kite(p);
+        };
+
+        const plot_kite = (p: p5) => {
+            p.push();
+            p.fill("blue");
+            p.noStroke();
+            p.translate(p.sin(p.radians(kitePos.phi)) * p.cos(p.radians(kitePos.theta)) * r, -p.sin(p.radians(kitePos.theta)) * r);
+            p.rotate(p.radians(kitePos.psi));
+            p.arc(0, 10, 50, 50, p.PI, 0);
+            p.pop();
         };
 
         const draw_boat = (p: p5) => {
