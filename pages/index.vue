@@ -3,33 +3,81 @@
         <img src="../assets/images/image_beyond.jpg" alt="" class="w-32 absolute left-2 top-2 rounded-md" />
         <div class="flex w-full">
             <!-- p5 SKETCH -->
-            <div id="container" class="w-2/3 flex items-center justify-center aspect-[2/1]" ref="sketch"></div>
-            <div class="bg-slate-400 flex items-center flex-1 justify-center font-mono">Modes</div>
+            <div id="container" class="w-8/12 flex items-center justify-center aspect-[2/1]" ref="sketch"></div>
+            <!-- Status -->
+            <div class="flex flex-col flex-grow">
+                <div>{{ getDate }}</div>
+                <div class="flex gap-4 items-center">
+                    <span>{{ socketStatus }}</span>
+                    <span class="bg-green-400 h-4 w-4 rounded-full" v-if="socketConnected" />
+                    <div class="bg-red-400 h-4 w-4 rounded-full" v-else />
+                </div>
+                <div class="flex-grow flex">
+                    <div class="flex flex-grow">
+                        <div class="flex flex-col items-center pt-4">
+                            <div class="flex grow">
+                                <img src="../assets/images/power_arrow.svg" class="h-full" />
+                            </div>
+                            <span class="font-mono">Power</span>
+                        </div>
+                        <div class="flex flex-col w-full px-8 justify-evenly h-full">
+                            <div class="bg-green-100 rounded-lg py-2 px-4 justify-center items-center flex font-bold">fold/deploy</div>
+                            <div class="bg-green-200 rounded-lg py-2 px-4 justify-center items-center flex font-bold">manual</div>
+                            <div class="bg-green-300 rounded-lg py-2 px-4 justify-center items-center flex font-bold">bird</div>
+                            <div class="bg-green-500 rounded-lg py-2 px-4 border-4 border-black justify-center items-center flex font-bold">zenith</div>
+                            <div class="bg-green-700 rounded-lg py-2 px-4 justify-center items-center flex font-bold text-white">static</div>
+                            <div class="bg-green-950 rounded-lg py-2 px-4 justify-center items-center flex font-bold text-white">dynamic</div>
+                        </div>
+                        <div class="flex flex-col gap-8 justify-center px-8 w-full">
+                            <div class="bg-slate-400 flex justify-center items-center rounded-lg py-2 cursor-pointer px-2">Settings</div>
+                            <div class="bg-slate-400 flex justify-center items-center rounded-lg py-2 cursor-pointer px-2">Maintenance</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
-        <div class="flex flex-1 bg-red-400 justify-center items-center font-mono">Mesures</div>
+        <div class="flex flex-1 bg-red-400">
+            <div class="bg-green-400 flex-1">
+                <!-- <apexchart height="100%" class="w-full" type="bar" :options="options" :series="series" /> -->
+            </div>
+            <div class="bg-blue-400 flex-1">Chart</div>
+            <div class="bg-slate-400 flex-1">Chart</div>
+            <div class="bg-yellow-400 flex-1">Chart</div>
+        </div>
     </div>
 </template>
 
 <script lang="ts" setup>
-import { listen } from "listhen";
 import p5 from "p5";
-import { ref, onMounted } from "vue";
+import { ref, onMounted, computed } from "vue";
+import { useSocket } from "../socket";
+import { ApexOptions } from "apexcharts";
+
+const { data, socketStatus, socketConnected } = useSocket();
+
+const getDate = computed(() => {
+    const date = new Date(data.value.time);
+    const day = ("00" + date.getDate()).slice(-2);
+    const month = ("00" + (date.getMonth() + 1)).slice(-2);
+    const year = date.getFullYear();
+    const hours = ("00" + date.getHours()).slice(-2);
+    const minutes = ("00" + date.getMinutes()).slice(-2);
+    const seconds = ("00" + date.getSeconds()).slice(-2);
+
+    return `${day}/${month}/${year} - ${hours}:${minutes}:${seconds}`;
+});
 
 // p5 sketch
 const sketch = ref<HTMLDivElement | null>(null);
+
 // dynamic canva size
 const size = computed(() => {
     if (!sketch.value) return { width: 50, height: 50 };
     return { width: sketch.value.clientWidth, height: sketch.value.clientHeight };
 });
 
-const boat_heading = 170;
-const wind_heading = 130;
-const kitePos = {
-    theta: 60,
-    phi: 60,
-    psi: 0,
-};
+// const boat_heading = 170;
+// const wind_heading = 130;
 
 onMounted(() => {
     var sketch = (p: p5) => {
@@ -54,15 +102,15 @@ onMounted(() => {
             p.push();
             p.fill("blue");
             p.noStroke();
-            p.translate(p.sin(p.radians(kitePos.phi)) * p.cos(p.radians(kitePos.theta)) * r, -p.sin(p.radians(kitePos.theta)) * r);
-            p.rotate(p.radians(kitePos.psi));
+            p.translate(p.sin(p.radians(data.value.phi)) * p.cos(p.radians(data.value.theta)) * r, -p.sin(p.radians(data.value.theta)) * r);
+            p.rotate(p.radians(data.value.psi));
             p.arc(0, 10, 50, 50, p.PI, 0);
             p.pop();
         };
 
         const draw_boat = (p: p5) => {
             p.push();
-            p.rotate(-p.HALF_PI + p.radians(wind_heading - boat_heading));
+            p.rotate(-p.HALF_PI + p.radians(data.value.wind_heading - data.value.boat_heading));
             p.fill("black");
             p.rect(0, 0, 80, 30);
             p.stroke("green");
@@ -73,7 +121,7 @@ onMounted(() => {
             p.noStroke();
             p.textSize(18);
             p.textAlign(p.CENTER);
-            p.text(`${boat_heading}°`, p.cos(-p.HALF_PI + p.radians(wind_heading - boat_heading)) * r * 1.05, p.sin(-p.HALF_PI + p.radians(wind_heading - boat_heading)) * r * 1.05);
+            p.text(`${data.value.boat_heading}°`, p.cos(-p.HALF_PI + p.radians(data.value.wind_heading - data.value.boat_heading)) * r * 1.05, p.sin(-p.HALF_PI + p.radians(data.value.wind_heading - data.value.boat_heading)) * r * 1.05);
         };
 
         const draw_flight_window = (p: p5) => {
@@ -99,4 +147,88 @@ onMounted(() => {
 
     new p5(sketch);
 });
+
+const series = <ApexOptions>ref([
+    {
+        data: [
+            {
+                x: "Un capteur",
+                y: 450,
+            },
+        ],
+    },
+]);
+
+// Charts
+const options: ApexOptions = {
+    legend: {
+        fontSize: "16px",
+        labels: {
+            useSeriesColors: true,
+        },
+        itemMargin: {
+            horizontal: 20,
+            vertical: 10,
+        },
+    },
+    plotOptions: {
+        bar: {
+            distributed: true,
+        },
+    },
+    title: {
+        text: "Title",
+        style: {
+            color: "#FFFFFF",
+            fontSize: "20",
+            fontFamily: "Roboto', sans-serif;",
+            fontWeight: 400,
+        },
+    },
+    xaxis: {
+        title: {
+            text: "X axis",
+            style: {
+                color: "#FFFFFF",
+                fontSize: "16",
+                fontFamily: "Roboto', sans-serif;",
+                fontWeight: 400,
+            },
+        },
+        labels: {
+            style: {
+                colors: "#858073",
+                fontSize: "12px",
+                fontFamily: "Roboto', sans-serif;",
+            },
+        },
+    },
+    yaxis: {
+        max: 2000,
+        title: {
+            text: "Y axis",
+            style: {
+                color: "#FFFFFF",
+                fontSize: "16px",
+                fontFamily: "Roboto', sans-serif;",
+                fontWeight: 400,
+            },
+        },
+        labels: {
+            style: {
+                colors: "#FFFFFF",
+                fontSize: "12px",
+                fontFamily: "Roboto', sans-serif;",
+                fontWeight: 400,
+            },
+        },
+    },
+    grid: {
+        yaxis: {
+            lines: {
+                show: false,
+            },
+        },
+    },
+};
 </script>
