@@ -12,6 +12,7 @@ interface dataFromNodeRed {
     mode: number
     boat_heading: number, // 0° => North
     wind_heading: number
+    total_traction: number // kg
 }
 
 // Reactive data, to be used in all the app
@@ -22,7 +23,8 @@ const data = ref<dataFromNodeRed>({
     time: 0,
     mode: 0,
     boat_heading: 0,
-    wind_heading: 0
+    wind_heading: 0,
+    total_traction: 0
 })
 
 // Error message, tied to the socket status boolean

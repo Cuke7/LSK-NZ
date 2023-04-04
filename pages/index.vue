@@ -36,13 +36,16 @@
                 </div>
             </div>
         </div>
-        <div class="flex flex-1 bg-red-400">
-            <div class="bg-green-400 flex-1">
-                <!-- <apexchart height="100%" class="w-full" type="bar" :options="options" :series="series" /> -->
+        <div class="flex flex-1">
+            <div class="w-1/4 flex py-4">
+                <div class="flex flex-col items-center w-full">
+                    <div class="mx-auto flex">Traction des lignes : {{ data.total_traction }} (kg)</div>
+                    <apexchart type="bar" height="90%" width="50%" :options="options" :series="traction" />
+                </div>
             </div>
-            <div class="bg-blue-400 flex-1">Chart</div>
-            <div class="bg-slate-400 flex-1">Chart</div>
-            <div class="bg-yellow-400 flex-1">Chart</div>
+            <div class="bg-blue-400 w-1/4">Chart</div>
+            <div class="bg-slate-400 w-1/4">Chart</div>
+            <div class="bg-yellow-400 w-1/4">Chart</div>
         </div>
     </div>
 </template>
@@ -148,56 +151,60 @@ onMounted(() => {
     new p5(sketch);
 });
 
-const series = <ApexOptions>ref([
-    {
-        data: [
-            {
-                x: "Un capteur",
-                y: 450,
-            },
-        ],
-    },
-]);
+const traction = computed<ApexOptions["series"]>(() => {
+    return [
+        {
+            data: [
+                {
+                    x: "Un capteur",
+                    y: data.value.total_traction,
+                },
+            ],
+        },
+    ];
+});
 
 // Charts
 const options: ApexOptions = {
-    legend: {
-        fontSize: "16px",
-        labels: {
-            useSeriesColors: true,
+    fill: {
+        opacity: 0.9,
+        type: "solid",
+        gradient: {
+            shade: "dark",
+            type: "horizontal",
+            shadeIntensity: 0.5,
+            gradientToColors: undefined,
+            inverseColors: true,
+            opacityFrom: 1,
+            opacityTo: 1,
+            stops: [0, 50, 100],
+            colorStops: [],
         },
-        itemMargin: {
-            horizontal: 20,
-            vertical: 10,
-        },
+    },
+    tooltip: {
+        enabled: false,
     },
     plotOptions: {
         bar: {
-            distributed: true,
+            columnWidth: "50",
         },
     },
-    title: {
-        text: "Title",
-        style: {
-            color: "#FFFFFF",
-            fontSize: "20",
-            fontFamily: "Roboto', sans-serif;",
-            fontWeight: 400,
+    chart: {
+        toolbar: {
+            show: false,
         },
+        sparkline: {
+            enabled: false,
+        },
+    },
+    dataLabels: {
+        enabled: false,
     },
     xaxis: {
-        title: {
-            text: "X axis",
-            style: {
-                color: "#FFFFFF",
-                fontSize: "16",
-                fontFamily: "Roboto', sans-serif;",
-                fontWeight: 400,
-            },
-        },
         labels: {
+            show: false,
             style: {
-                colors: "#858073",
+                colors: "black",
                 fontSize: "12px",
                 fontFamily: "Roboto', sans-serif;",
             },
@@ -205,21 +212,12 @@ const options: ApexOptions = {
     },
     yaxis: {
         max: 2000,
-        title: {
-            text: "Y axis",
-            style: {
-                color: "#FFFFFF",
-                fontSize: "16px",
-                fontFamily: "Roboto', sans-serif;",
-                fontWeight: 400,
-            },
-        },
         labels: {
             style: {
-                colors: "#FFFFFF",
+                colors: "black",
                 fontSize: "12px",
-                fontFamily: "Roboto', sans-serif;",
                 fontWeight: 400,
+                fontFamily: "Roboto', sans-serif;",
             },
         },
     },
