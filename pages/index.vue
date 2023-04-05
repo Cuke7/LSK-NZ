@@ -1,51 +1,72 @@
 <template>
-    <div class="flex h-full flex-1 flex-col">
+    <div class="flex h-full flex-col overflow-hidden">
         <img src="../assets/images/image_beyond.jpg" alt="" class="w-32 absolute left-2 top-2 rounded-md" />
         <div class="flex w-full">
             <!-- p5 SKETCH -->
-            <div id="container" class="w-8/12 flex items-center justify-center aspect-[2/1]" ref="sketch"></div>
+            <div id="container" class="w-7/12 flex items-center justify-center aspect-[2/1]" ref="sketch"></div>
             <!-- Status -->
             <div class="flex flex-col flex-grow">
-                <div>{{ getDate }}</div>
-                <div class="flex gap-4 items-center">
+                <div class="ml-4">{{ getDate }}</div>
+                <div class="flex gap-4 items-center ml-4">
                     <span>{{ socketStatus }}</span>
                     <span class="bg-green-400 h-4 w-4 rounded-full" v-if="socketConnected" />
                     <div class="bg-red-400 h-4 w-4 rounded-full" v-else />
                 </div>
                 <div class="flex-grow flex">
-                    <div class="flex flex-grow">
-                        <div class="flex flex-col items-center pt-4">
-                            <div class="flex grow">
-                                <img src="../assets/images/power_arrow.svg" class="h-full" />
-                            </div>
-                            <span class="font-mono">Power</span>
+                    <div class="flex flex-col items-center pt-4">
+                        <div class="flex grow">
+                            <img src="../assets/images/power_arrow.svg" class="h-full" />
                         </div>
-                        <div class="flex flex-col w-full px-8 justify-evenly h-full">
-                            <div class="bg-green-100 rounded-lg py-2 px-4 justify-center items-center flex font-bold">fold/deploy</div>
-                            <div class="bg-green-200 rounded-lg py-2 px-4 justify-center items-center flex font-bold">manual</div>
-                            <div class="bg-green-300 rounded-lg py-2 px-4 justify-center items-center flex font-bold">bird</div>
-                            <div class="bg-green-500 rounded-lg py-2 px-4 border-4 border-black justify-center items-center flex font-bold">zenith</div>
-                            <div class="bg-green-700 rounded-lg py-2 px-4 justify-center items-center flex font-bold text-white">static</div>
-                            <div class="bg-green-950 rounded-lg py-2 px-4 justify-center items-center flex font-bold text-white">dynamic</div>
-                        </div>
-                        <div class="flex flex-col gap-8 justify-center px-8 w-full">
-                            <div class="bg-slate-400 flex justify-center items-center rounded-lg py-2 cursor-pointer px-2">Settings</div>
-                            <div class="bg-slate-400 flex justify-center items-center rounded-lg py-2 cursor-pointer px-2">Maintenance</div>
-                        </div>
+                        <span class="font-mono">Power</span>
+                    </div>
+                    <div class="flex flex-col grow justify-evenly">
+                        <div class="text-green-300 rounded justify-center p-2 flex font-bold">fold/deploy</div>
+                        <div class="text-green-400 rounded justify-center p-2 flex font-bold">manuel</div>
+                        <div class="text-green-500 rounded justify-center p-2 flex font-bold">bird</div>
+                        <div class="text-green-600 rounded justify-center p-2 flex font-bold border-4 border-primary">zenith</div>
+                        <div class="text-green-700 rounded justify-center p-2 flex font-bold">statique</div>
+                        <div class="text-green-800 rounded justify-center p-2 flex font-bold">dynamique</div>
+                    </div>
+                    <div class="flex flex-col gap-8 justify-center px-8 grow">
+                        <div class="bg-slate-400 flex justify-center items-center rounded py-2 cursor-pointer px-2">Settings</div>
+                        <div class="bg-slate-400 flex justify-center items-center rounded py-2 cursor-pointer px-2">Maintenance</div>
                     </div>
                 </div>
             </div>
         </div>
-        <div class="flex flex-1">
-            <div class="w-1/4 flex py-4">
-                <div class="flex flex-col items-center w-full">
-                    <div class="mx-auto flex">Traction des lignes : {{ data.total_traction }} (kg)</div>
-                    <apexchart type="bar" height="90%" width="50%" :options="options" :series="traction" />
+        <div class="flex flex-1 py-4 justify-evenly">
+            <div class="flex flex-col items-center">
+                <div>
+                    Traction des lignes : <span class="font-bold">{{ data.total_traction }} kg</span>
+                </div>
+                <apexchart type="bar" height="90%" width="40%" :options="barOptions" :series="barTractionSerie" />
+            </div>
+            <div class="flex flex-col justify-between">
+                <div>
+                    Azimuth : <span class="font-bold">{{ data.phi }} °</span>
+                </div>
+                <div>
+                    Élévation : <span class="font-bold">{{ data.theta }} °</span>
+                </div>
+                <div>
+                    Lacet : <span class="font-bold">{{ data.psi }} °</span>
+                </div>
+                <span>Mode : <span class="font-bold">zenith</span></span>
+                <span>Batterie : <span class="font-bold">12.6 V</span></span>
+                <span>System healthy</span>
+                <div class="bg-red-600 rounded p-2 flex justify-center text-white cursor-pointer">Stop power</div>
+            </div>
+            <div class="flex flex-col items-center">
+                <div>Traction des lignes</div>
+                <div class="flex grow">
+                    <apexchart type="line" height="100%" :options="lineOptions" :series="tractionLine" />
                 </div>
             </div>
-            <div class="bg-blue-400 w-1/4">Chart</div>
-            <div class="bg-slate-400 w-1/4">Chart</div>
-            <div class="bg-yellow-400 w-1/4">Chart</div>
+            <div class="flex flex-col justify-between">
+                <div class="text-7xl">104°</div>
+                <div class="text-7xl">91°</div>
+                <div class="text-7xl">246°</div>
+            </div>
         </div>
     </div>
 </template>
@@ -79,9 +100,6 @@ const size = computed(() => {
     return { width: sketch.value.clientWidth, height: sketch.value.clientHeight };
 });
 
-// const boat_heading = 170;
-// const wind_heading = 130;
-
 onMounted(() => {
     var sketch = (p: p5) => {
         let r: number;
@@ -103,7 +121,7 @@ onMounted(() => {
 
         const plot_kite = (p: p5) => {
             p.push();
-            p.fill("blue");
+            p.fill("#4b6bfb");
             p.noStroke();
             p.translate(p.sin(p.radians(data.value.phi)) * p.cos(p.radians(data.value.theta)) * r, -p.sin(p.radians(data.value.theta)) * r);
             p.rotate(p.radians(data.value.psi));
@@ -151,7 +169,19 @@ onMounted(() => {
     new p5(sketch);
 });
 
-const traction = computed<ApexOptions["series"]>(() => {
+const tractionLine = computed<ApexOptions["series"]>(() => {
+    return [
+        {
+            // data: [
+            //     [0, 0],
+            //     [1, 3],
+            // ],
+            data: data.value.traction_time,
+        },
+    ];
+});
+
+const barTractionSerie = computed<ApexOptions["series"]>(() => {
     return [
         {
             data: [
@@ -164,22 +194,90 @@ const traction = computed<ApexOptions["series"]>(() => {
     ];
 });
 
-// Charts
-const options: ApexOptions = {
-    fill: {
-        opacity: 0.9,
-        type: "solid",
-        gradient: {
-            shade: "dark",
-            type: "horizontal",
-            shadeIntensity: 0.5,
-            gradientToColors: undefined,
-            inverseColors: true,
-            opacityFrom: 1,
-            opacityTo: 1,
-            stops: [0, 50, 100],
-            colorStops: [],
+const lineOptions: ApexOptions = {
+    legend: {
+        fontSize: "16px",
+        labels: {
+            useSeriesColors: true,
         },
+        itemMargin: {
+            horizontal: 20,
+            vertical: 10,
+        },
+    },
+    markers: {
+        size: 0,
+        colors: "#FFFFFF",
+    },
+    stroke: {
+        width: 2,
+        curve: "smooth",
+    },
+    tooltip: {
+        enabled: false,
+    },
+    grid: {
+        yaxis: {
+            lines: {
+                show: false,
+            },
+        },
+    },
+    chart: {
+        animations: {
+            enabled: false,
+        },
+        toolbar: {
+            show: false,
+        },
+    },
+    dataLabels: {
+        enabled: false,
+    },
+    xaxis: {
+        type: "datetime",
+        axisBorder: {
+            show: true,
+            color: "black",
+        },
+        axisTicks: {
+            show: true,
+            color: "black",
+        },
+        labels: {
+            style: {
+                colors: "black",
+                fontSize: "12px",
+            },
+        },
+    },
+    yaxis: {
+        axisBorder: {
+            show: true,
+            color: "black",
+            offsetX: 0,
+            offsetY: 0,
+        },
+        axisTicks: {
+            show: true,
+            color: "black",
+            width: 6,
+            offsetX: 0,
+            offsetY: 0,
+        },
+        labels: {
+            style: {
+                colors: "black",
+                fontSize: "12px",
+            },
+        },
+    },
+};
+
+// Charts
+const barOptions: ApexOptions = {
+    fill: {
+        colors: ["#4b6bfb"],
     },
     tooltip: {
         enabled: false,
@@ -206,7 +304,6 @@ const options: ApexOptions = {
             style: {
                 colors: "black",
                 fontSize: "12px",
-                fontFamily: "Roboto', sans-serif;",
             },
         },
     },
@@ -216,8 +313,6 @@ const options: ApexOptions = {
             style: {
                 colors: "black",
                 fontSize: "12px",
-                fontWeight: 400,
-                fontFamily: "Roboto', sans-serif;",
             },
         },
     },
@@ -229,4 +324,6 @@ const options: ApexOptions = {
         },
     },
 };
+
+const linedata = computed(() => {});
 </script>
